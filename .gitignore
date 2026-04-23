@@ -1,0 +1,18 @@
+# Build and compilation files
+build/
+*.class
+out/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS and system files
+.DS_Store
+Thumbs.db
+
+# Data and temp files
+data/test.txt
+logs/
+temp/

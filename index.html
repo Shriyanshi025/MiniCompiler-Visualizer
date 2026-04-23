@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mini Compiler Visualizer</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #1e1e1e;
+            font-family: Consolas;
+            color: white;
+            overflow: hidden;
+        }
+
+        #mainContainer {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #editorSection {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            background: #2b2b2b;
+            padding: 10px;
+            color: white;
+            font-weight: bold;
+            border-bottom: 1px solid #333;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+        }
+
+        #editor {
+            width: 60%;
+            height: 100%;
+        }
+
+        .right {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #333;
+        }
+
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #1177bb;
+        }
+
+        #output {
+            flex: 1;
+            background: #000;
+            color: #00ff88;
+            padding: 15px;
+            overflow: auto;
+            margin: 0;
+            font-size: 13px;
+        }
+
+        #resizer {
+            height: 4px;
+            background: #333;
+            cursor: row-resize;
+            transition: background 0.2s;
+            z-index: 100;
+        }
+
+        #resizer:hover {
+            background: #0e639c;
+        }
+
+        #visualizer {
+            height: 250px;
+            min-height: 100px;
+            max-height: 80vh;
+            background: #252526;
+            padding: 15px;
+            overflow-y: auto;
+            border-top: 1px solid #333;
+        }
+
+        #tabs {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            display: flex;
+        }
+
+        #tabs button {
+            background: #2d2d2d;
+            color: #aaa;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: 0.2s;
+        }
+
+        #tabs button:hover {
+            background: #3e3e42;
+            color: white;
+        }
+
+        #tabs button.active {
+            background: #0e639c;
+            color: white;
+            border-color: #0e639c;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: #ccc;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid #3e3e42;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #333337;
+            color: #aaa;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #2d2d30;
+        }
+
+        .type-keyword { color: #569cd6; font-weight: bold; }
+        .type-identifier { color: #9cdcfe; }
+        .type-number { color: #b5cea8; }
+        .type-operator { color: #d4d4d4; }
+        .type-symbol { color: #ffd700; }
+    </style>
+</head>
+
+<body>
+
+<div id="mainContainer">
+    <div id="editorSection">
+        <div class="topbar">🚀 Mini Compiler Visualizer (Visual Mode)</div>
+
+        <div class="container">
+            <div id="editor"></div>
+
+            <div class="right">
+                <button onclick="runCode()"> ▶ Run Code</button>
+                <pre id="output"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div id="resizer"></div>
+
+    <div id="visualizer">
+        <div id="tabs">
+            <button id="btn-tokens" onclick="showTab('tokens')" class="active">Tokens</button>
+            <button id="btn-symbols" onclick="showTab('symbols')">Symbol Table</button>
+            <button id="btn-trace" onclick="showTab('trace')">Execution Trace</button>
+        </div>
+
+        <div id="tokensTab" class="tab-content" style="display: block;">
+            <h3>Lexical Analysis (Tokens)</h3>
+            <div id="tokenTable"></div>
+        </div>
+
+        <div id="symbolsTab" class="tab-content">
+            <h3>Symbol Table (Memory State)</h3>
+            <div id="symbolTable"></div>
+        </div>
+
+        <div id="traceTab" class="tab-content">
+            <h3>Execution Trace (Timeline)</h3>
+            <div id="executionTrace"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Monaco Editor CDN -->
+<script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
+
+<script>
+    let editor;
+
+    require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@latest/min/vs' }});
+
+    require(['vs/editor/editor.main'], function () {
+
+        editor = monaco.editor.create(document.getElementById('editor'), {
+            value: `int a = 10;
+
+while (a < 15) {
+    print a;
+    a++;
+}`,
+            language: 'java',
+            theme: 'vs-dark',
+            fontSize: 14,
+            automaticLayout: false,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false
+        });
+    });
+
+    // --- Resizer Logic ---
+    let isResizing = false;
+    const resizer = document.getElementById("resizer");
+    const visualizer = document.getElementById("visualizer");
+
+    resizer.addEventListener("mousedown", (e) => {
+        isResizing = true;
+        document.body.style.cursor = "row-resize";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!isResizing) return;
+
+        const newHeight = window.innerHeight - e.clientY;
+        visualizer.style.height = newHeight + "px";
+        
+        // Force Monaco to resize smoothly
+        if (editor) {
+            requestAnimationFrame(() => {
+                editor.layout();
+            });
+        }
+    });
+
+    document.addEventListener("mouseup", () => {
+        isResizing = false;
+        document.body.style.cursor = "default";
+    });
+
+    function showTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
+
+        document.getElementById(tab + 'Tab').style.display = 'block';
+        document.getElementById('btn-' + tab).classList.add('active');
+    }
+
+    function runCode() {
+        let code = editor.getValue();
+        document.getElementById("output").innerText = "Compiling...";
+
+        fetch("http://localhost:8080", {
+            method: "POST",
+            body: code
+        })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("output").innerText = data.output;
+                renderTokens(data.tokens);
+                renderSymbolTable(data.symbolTable);
+                renderExecutionTrace(data.executionTrace);
+                
+                // Auto-switch to trace tab if data exists
+                if (data.executionTrace && data.executionTrace.length > 0) {
+                    showTab('trace');
+                }
+            })
+            .catch(err => {
+                document.getElementById("output").innerText = "Server Error: Ensure Java WebServer is running on port 8080";
+                editor.focus();
+            });
+    }
+
+    function renderTokens(tokens) {
+        let html = `<table>
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Type</th>
+                    <th>Line</th>
+                </tr>
+            </thead>
+            <tbody>`;
+        
+        if (tokens && tokens.length > 0) {
+            tokens.forEach(t => {
+                html += `<tr>
+                    <td>${t.value}</td>
+                    <td class="type-${t.type.toLowerCase()}">${t.type}</td>
+                    <td>${t.line}</td>
+                </tr>`;
+            });
+        }
+        
+        html += `</tbody></table>`;
+        document.getElementById("tokenTable").innerHTML = html;
+    }
+
+    function renderSymbolTable(symbols) {
+        let html = `<table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>`;
+        
+        if (symbols && symbols.length > 0) {
+            symbols.forEach(s => {
+                html += `<tr>
+                    <td class="type-identifier">${s.name}</td>
+                    <td class="type-keyword">${s.type}</td>
+                    <td class="type-number">${s.value}</td>
+                </tr>`;
+            });
+        }
+        
+        html += `</tbody></table>`;
+        document.getElementById("symbolTable").innerHTML = html;
+    }
+
+    function renderExecutionTrace(trace) {
+        let html = `<table>
+            <thead>
+                <tr>
+                    <th>Step</th>
+                    <th>Action</th>
+                    <th>Variables</th>
+                </tr>
+            </thead>
+            <tbody>`;
+        
+        if (trace && trace.length > 0) {
+            trace.forEach(step => {
+                let varStr = Object.entries(step.variables)
+                    .map(([name, val]) => `${name}=${val}`)
+                    .join(", ");
+
+                html += `<tr>
+                    <td>${step.step}</td>
+                    <td style="color: #ce9178;">${step.action}</td>
+                    <td class="type-identifier">${varStr || "{}"}</td>
+                </tr>`;
+            });
+        }
+        
+        html += `</tbody></table>`;
+        document.getElementById("executionTrace").innerHTML = html;
+    }
+</script>
+
+</body>
+</html>
