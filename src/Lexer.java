@@ -95,6 +95,10 @@ public class Lexer {
         return detailedTokens;
     }
 
+    public static void reset() {
+        detailedTokens.clear();
+    }
+
     public static List<String> runLexer() {
         List<String> tokens = new ArrayList<>();
         detailedTokens.clear();

@@ -1,4 +1,4 @@
-# 🚀 Mini Compiler Visualizer
+# 🚀 Visual Compiler Studio
 
 A web-based interactive tool to visualize how a compiler works step-by-step, including:
 
@@ -17,6 +17,15 @@ A web-based interactive tool to visualize how a compiler works step-by-step, inc
   - **Execution Trace**: A chronological replay of every program action.
 - **Real-time Execution**: Immediate feedback on code changes.
 - **Clean Output**: Console results contain ONLY user-defined `print` results.
+
+## ☕ Java-like Syntax Support
+
+- This is **not** a full Java compiler.
+- It supports beginner-level Java-like wrapper syntax.
+- Boilerplate wrappers like `public class Main` and `public static void main(String[] args)` are preprocessed and automatically stripped.
+- `System.out.println(x)` and `System.out.print(x)` are both preprocessed and treated as standard `print` statements.
+- **Supported Syntax**: `int`, `float`, assignment, arithmetic, `if`, `while`, `for`, `++`, `--`, and `print`/`System.out.println`.
+- Full advanced Java features such as classes, objects, arrays, methods, imports, `Scanner`, and string concatenation are **not** fully supported.
 
 ## 🧪 Sample Input
 
@@ -51,4 +60,4 @@ print a;
    Open `index.html` in your browser or navigate to `http://localhost:8080` (if serving locally).
 
 ---
-**MiniCompiler** - *Visualizing the magic behind the code.*
+**Visual Compiler Studio** - *Visualizing the magic behind the code.*

@@ -4,15 +4,33 @@ public class Executor {
 
     private static List<ExecutionStep> executionTrace = new ArrayList<>();
     private static int stepCounter = 0;
+    private static boolean traceLimitReached = false;
 
     public static List<ExecutionStep> getExecutionTrace() {
         return executionTrace;
     }
 
+    public static void reset() {
+        executionTrace.clear();
+        stepCounter = 0;
+        traceLimitReached = false;
+    }
+
     private static void addTrace(String action, Map<String, Double> values) {
-        executionTrace.add(
-            new ExecutionStep(++stepCounter, action, new HashMap<>(values))
-        );
+        if (traceLimitReached) {
+            return;
+        }
+        if (executionTrace.size() < 500) {
+            executionTrace.add(
+                new ExecutionStep(++stepCounter, action, new HashMap<>(values))
+            );
+        }
+        if (executionTrace.size() == 500 && !traceLimitReached) {
+            traceLimitReached = true;
+            executionTrace.add(
+                new ExecutionStep(++stepCounter, "Trace limit reached. Further steps hidden for memory safety.", new HashMap<>(values))
+            );
+        }
     }
 
     public static void execute(List<String> tokens, Map<String, Double> values,
@@ -80,11 +98,21 @@ public class Executor {
                     addTrace("print \"" + finalMsg + "\"", values);
                 } else {
                     String var = tokens.get(i);
-                    double val = values.getOrDefault(var, 0.0);
-                    if (types.getOrDefault(var, "int").equals("int")) {
-                        System.out.println((int) val);
+                    double val;
+                    if (var.matches("\\d+(\\.\\d+)?")) {
+                        val = Double.parseDouble(var);
+                        if (var.contains(".")) {
+                            System.out.println(val);
+                        } else {
+                            System.out.println((int) val);
+                        }
                     } else {
-                        System.out.println(val);
+                        val = values.getOrDefault(var, 0.0);
+                        if (types.getOrDefault(var, "int").equals("int")) {
+                            System.out.println((int) val);
+                        } else {
+                            System.out.println(val);
+                        }
                     }
                     addTrace("print " + var, values);
                     i++;
@@ -165,6 +193,18 @@ public class Executor {
                 String var = tokens.get(i);
                 double value = values.getOrDefault(var, 0.0);
                 value = value + 1;
+                values.put(var, value);
+                addTrace("update " + var, values);
+                i += 2;
+                continue;
+            }
+
+            // ================= DECREMENT (--) =================
+            if (i + 1 < tokens.size() && tokens.get(i + 1).equals("-") &&
+                    i + 2 < tokens.size() && tokens.get(i + 2).equals("-")) {
+                String var = tokens.get(i);
+                double value = values.getOrDefault(var, 0.0);
+                value = value - 1;
                 values.put(var, value);
                 addTrace("update " + var, values);
                 i += 2;

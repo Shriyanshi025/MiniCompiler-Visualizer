@@ -8,6 +8,10 @@ public class Semantic {
         return symbolTable;
     }
 
+    public static void reset() {
+        symbolTable.clear();
+    }
+
     public static void checkSemantics(List<String> tokens) {
         // IMPORTANT: Clear symbolTable ONLY at start of checkSemantics()
         symbolTable.clear();

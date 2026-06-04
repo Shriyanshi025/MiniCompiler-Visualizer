@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mini Compiler Visualizer</title>
+    <title>Visual Compiler Studio</title>
 
     <style>
         body {
@@ -175,14 +175,24 @@
 
 <div id="mainContainer">
     <div id="editorSection">
-        <div class="topbar">🚀 Mini Compiler Visualizer (Visual Mode)</div>
+        <div class="topbar" style="display: flex; justify-content: space-between; align-items: center; background: #252526; padding: 8px 15px; border-bottom: 1px solid #3c3c3c;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-weight: bold; font-size: 14px; color: #ffffff; letter-spacing: 0.5px;">Visual Compiler Studio</span>
+                <span style="font-size: 10px; font-weight: 600; text-transform: uppercase; background: #3e3e42; color: #007acc; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">Visual Mode</span>
+            </div>
+            <button onclick="runCode()" style="padding: 6px 16px; font-size: 12px; border-radius: 3px; display: flex; align-items: center; gap: 6px; height: 28px; min-height: 28px; line-height: 1;">
+                <span>▶</span> Run Code
+            </button>
+        </div>
 
         <div class="container">
             <div id="editor"></div>
 
-            <div class="right">
-                <button onclick="runCode()"> ▶ Run Code</button>
-                <pre id="output"></pre>
+            <div class="right" style="background: #000; display: flex; flex-direction: column; overflow: hidden; height: 100%;">
+                <div style="background: #252526; padding: 8px 15px; border-bottom: 1px solid #333; font-size: 11px; font-weight: bold; color: #858585; text-transform: uppercase; letter-spacing: 1.5px; border-left: 1px solid #333; min-height: 18px;">
+                    OUTPUT
+                </div>
+                <pre id="output" style="background: #000; flex: 1; margin: 0; padding: 15px; overflow: auto; color: #00ff88; font-size: 13px; font-family: Consolas, monospace;"></pre>
             </div>
         </div>
     </div>
@@ -279,6 +289,7 @@ while (a < 15) {
     function runCode() {
         let code = editor.getValue();
         document.getElementById("output").innerText = "Compiling...";
+        document.getElementById("output").style.color = "#00ff88";
 
         fetch("http://localhost:8080", {
             method: "POST",
@@ -286,18 +297,31 @@ while (a < 15) {
         })
             .then(res => res.json())
             .then(data => {
-                document.getElementById("output").innerText = data.output;
-                renderTokens(data.tokens);
-                renderSymbolTable(data.symbolTable);
-                renderExecutionTrace(data.executionTrace);
-                
-                // Auto-switch to trace tab if data exists
-                if (data.executionTrace && data.executionTrace.length > 0) {
-                    showTab('trace');
+                if (data.error) {
+                    document.getElementById("output").innerText = "Compilation Failed\n------------------\n" + data.error;
+                    document.getElementById("output").style.color = "#ff3333";
+                    
+                    renderTokens([]);
+                    renderSymbolTable([]);
+                    renderExecutionTrace([]);
+                } else {
+                    document.getElementById("output").innerText = data.output;
+                    document.getElementById("output").style.color = "#00ff88";
+                    
+                    renderTokens(data.tokens);
+                    renderSymbolTable(data.symbolTable);
+                    renderExecutionTrace(data.executionTrace);
+                    
+                    // Auto-switch to trace tab if data exists
+                    if (data.executionTrace && data.executionTrace.length > 0) {
+                        showTab('trace');
+                    }
                 }
             })
             .catch(err => {
-                document.getElementById("output").innerText = "Server Error: Ensure Java WebServer is running on port 8080";
+                document.getElementById("output").innerText = "Compilation Failed\n------------------\nServer Error: Ensure Java WebServer is running on port 8080";
+                document.getElementById("output").style.color = "#ff3333";
+                
                 editor.focus();
             });
     }
