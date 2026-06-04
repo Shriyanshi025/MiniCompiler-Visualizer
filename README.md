@@ -7,6 +7,64 @@ A web-based interactive tool to visualize how a compiler works step-by-step, inc
 - ⚙️ **Execution Engine** (Runtime Simulation)
 - 📊 **Execution Trace** (Step-by-step timeline)
 
+## 🌟 Highlights
+
+* Built a complete compiler pipeline: Lexer → Parser → Semantic → Executor
+* Supports Java-like syntax preprocessing
+* Real-time token visualization
+* Symbol table generation and memory tracking
+* Execution trace timeline
+* Monaco Editor integration
+* Syntax, semantic, and type validation
+* IDE-style resizable workspace
+
+## 📸 Screenshots
+
+### Code Editor
+
+<img width="1920" height="1080" alt="editor-output png" src="https://github.com/user-attachments/assets/014ff3cf-d944-49af-a0de-f924f15762b5" />
+
+
+### Token Visualization
+
+<img width="1920" height="1080" alt="tokens png" src="https://github.com/user-attachments/assets/ed828d16-0f80-4db7-b0e0-c60696a46eba" />
+
+
+### Symbol Table
+
+<img width="1920" height="1080" alt="symbol-table png" src="https://github.com/user-attachments/assets/767c9b1a-44d4-40f0-8fb2-5dbed51dae97" />
+
+
+### Execution Trace
+
+<img width="1920" height="1080" alt="execution-trace png" src="https://github.com/user-attachments/assets/c4b2940c-1ae0-4a13-bca5-92d597163c88" />
+
+
+### Error Detection
+
+<img width="1920" height="1080" alt="type-error png" src="https://github.com/user-attachments/assets/3b1cfec3-b64e-411f-b7da-5d6838560d86" />
+
+
+## ⚠️ Known Limitations
+
+* Not a full Java compiler
+* No object-oriented programming support
+* No Scanner input support
+* No array support
+* No inheritance/polymorphism
+* Designed primarily for compiler visualization and learning
+
+## 🚀 Future Scope
+
+* Function and method support
+* Array handling
+* String operations
+* AST (Abstract Syntax Tree) visualization
+* Optimization phase visualization
+* Intermediate code generation
+* Machine code generation simulation
+
+
 ## ✨ Features
 
 - **Monaco Editor**: A full VS Code-like editing experience.
